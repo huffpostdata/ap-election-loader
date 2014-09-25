@@ -57,13 +57,18 @@ module AP
       end
 
       q "update stage_ap_races set ap_race_id = concat(date_format(election_date, '%y%m'), race_county_id)"
+      short_date = q("select election_date from stage_ap_races limit 1").first["election_date"].strftime("%y%m")
+      q "update stage_ap_results set candidate_id = concat(#{short_date}, candidate_id)"
     end
 
     # Create new records in production (non-staging) table if necessary
     def initialize_state(state_abbr)
-      election_date = q("select election_date from stage_ap_races limit 1").first["election_date"].strftime("%Y-%m-%d")
-      q "start transaction"
+      first_date = q("select election_date from stage_ap_races limit 1").first["election_date"]
+      election_date = first_date.strftime("%Y-%m-%d")
+      short_date = first_date.strftime("%y%m")
+      q "update stage_ap_candidates set candidate_id = concat(#{short_date}, candidate_id)"
 
+      q "start transaction"
       q <<-eos
         delete ap_candidates from ap_candidates
           inner join ap_results on ap_results.ap_candidate_id = ap_candidates.id

@@ -51,7 +51,7 @@ CREATE TABLE IF NOT EXISTS `stage_ap_races` (
 CREATE TABLE IF NOT EXISTS `ap_results` (
   `test_flag` varchar(1) COLLATE utf8_unicode_ci NOT NULL,
   `ap_race_id` bigint(20) NOT NULL DEFAULT '0',
-  `ap_candidate_id` int(11) NOT NULL DEFAULT '0',
+  `ap_candidate_id` bigint(20) NOT NULL DEFAULT '0',
   `party` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL,
   `incumbent` tinyint(1) DEFAULT NULL,
   `vote_count` int(11) DEFAULT NULL,
@@ -66,7 +66,7 @@ CREATE TABLE IF NOT EXISTS `ap_results` (
 CREATE TABLE IF NOT EXISTS `stage_ap_results` (
   `test_flag` varchar(1) COLLATE utf8_unicode_ci NOT NULL,
   `race_county_id` bigint(20) DEFAULT NULL,
-  `candidate_id` int(11) DEFAULT NULL,
+  `candidate_id` bigint(20) DEFAULT NULL,
   `party` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL,
   `incumbent` tinyint(1) DEFAULT NULL,
   `vote_count` int(11) DEFAULT NULL,
@@ -76,7 +76,7 @@ CREATE TABLE IF NOT EXISTS `stage_ap_results` (
 
 CREATE TABLE IF NOT EXISTS `ap_candidates` (
   `test_flag` varchar(1) COLLATE utf8_unicode_ci DEFAULT NULL,
-  `id` int(11) NOT NULL DEFAULT '0',
+  `id` bigint(20) NOT NULL DEFAULT '0',
   `candidate_number` int(11) DEFAULT NULL,
   `first_name` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL,
   `middle_name` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL,
@@ -89,7 +89,7 @@ CREATE TABLE IF NOT EXISTS `ap_candidates` (
 
 CREATE TABLE IF NOT EXISTS `stage_ap_candidates` (
   `test_flag` varchar(1) COLLATE utf8_unicode_ci DEFAULT NULL,
-  `candidate_id` int(11) DEFAULT NULL,
+  `candidate_id` bigint(20) DEFAULT NULL,
   `candidate_number` int(11) DEFAULT NULL,
   `first_name` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL,
   `middle_name` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL,
