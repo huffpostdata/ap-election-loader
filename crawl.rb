@@ -10,7 +10,8 @@ params = Trollop::options do
   opt :once, "Only download and import data once", :default => false
   opt :clean, "Clean the data directories for specified states before downloading", :default => false
   opt :interval, "Interval (in seconds) at which AP data will be downloaded", :type => :int, :default => nil
-  opt :posthook, "Run posthook after first iteration, even if results didn't change", :default => false
+  opt :posthook, "Run posthook after first import, even if results didn't change", :default => false
+  opt :posthookall, "Run posthook after importing each state", :default => false
   opt :record, "Record this run", :default => false
   opt :replay, "Replay the most recent run", :default => false
   opt :replaydate, "Specify date of replay to run (e.g. 20120521)", :type => :string

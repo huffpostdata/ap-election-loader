@@ -16,23 +16,16 @@ module AP
       create_tables if @crawler.params[:initialize]
     end
 
-    def import
-      @crawler.logger.log "Started importing"
-      @crawler.logger.log "New data in #{@crawler.new_files.map{|file| file.first.split('/').last}.join(', ')}" if @crawler.new_files.size > 0
-
-      @crawler.updated_states.keys.each do |state_abbr|
-        @crawler.logger.log "Importing #{state_abbr}"
-        stage_state(state_abbr)
-        @crawler.params[:initialize] ? initialize_state(state_abbr) : merge_state(state_abbr)
-      end
+    def import_state(state_abbr)
+      @crawler.logger.log "Importing #{state_abbr}"
+      stage_state(state_abbr)
+      @crawler.params[:initialize] ? initialize_state(state_abbr) : merge_state(state_abbr)
 
       # Wait to cache new files until they're fully merged so the crawler can be killed between downloading and importing
       @crawler.new_files.each do |file, tm, md5|
         File.open("#{file}.mtime", 'w') {|f| f.write(tm)}
         File.open("#{file}.md5", 'w') {|f| f.write(md5)}
       end
-
-      @crawler.logger.log "Finished importing"
     end
 
   private

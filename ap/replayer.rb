@@ -10,47 +10,52 @@ module AP
       @crawler = crawler
       @done = false
       @timekey_idx = 0
+      @timekey_states = []
     end
 
-    def replay
+    def replay_start
       raise AbortException, "Can't run replays in production environment" if ['production', 'internal'].include?(@crawler.env)
 
       get_replay if @timekey_idx == 0
       timekey = @timekeys[@timekey_idx]
       @crawler.logger.log "Started replaying #{timekey}"
 
-      archive_dir = "#{@crawler.datadir}/#{@crawler.params[:replaydate]}/#{timekey}"
-      new_states = Dir.glob("#{archive_dir}/*").map{|d| d.split('/').last}.uniq
-      new_states = new_states & @crawler.params[:states] if @crawler.params[:states]
+      @archive_dir = "#{@crawler.datadir}/#{@crawler.params[:replaydate]}/#{timekey}"
+      @timekey_states = Dir.glob("#{@archive_dir}/*").map{|d| d.split('/').last}.uniq
+      @timekey_states = @timekey_states & @crawler.params[:states] if @crawler.params[:states]
+    end
 
-      new_states.each do |state_abbr|
-        state_dir = "#{@crawler.datadir}/#{state_abbr}"
-        system "mkdir -p #{state_dir}"
-        state_archive_dir = "#{archive_dir}/#{state_abbr}"
-        files = ["#{state_abbr}_Results.txt", "#{state_abbr}_Race.txt", "#{state_abbr}_Candidate.txt"]
-        files.each do |file|
-          archive_file = "#{state_archive_dir}/#{file.split('/').last}"
-          next unless File.exists?(archive_file)
-          local_file = "#{state_dir}/#{file.split('/').last}"
-          system("cp #{archive_file} #{local_file}")
-          @crawler.new_files << [local_file, nil, nil]
-        end
-        @crawler.updated_states[state_abbr] ||= 1
+    def replay_state(state_abbr)
+      return unless @timekey_states.index(state_abbr)
+
+      state_dir = "#{@crawler.datadir}/#{state_abbr}"
+      system "mkdir -p #{state_dir}"
+      state_archive_dir = "#{@archive_dir}/#{state_abbr}"
+      files = ["#{state_abbr}_Results.txt", "#{state_abbr}_Race.txt", "#{state_abbr}_Candidate.txt"]
+      files.each do |file|
+        archive_file = "#{state_archive_dir}/#{file.split('/').last}"
+        next unless File.exists?(archive_file)
+        local_file = "#{state_dir}/#{file.split('/').last}"
+        system("cp #{archive_file} #{local_file}")
+        @crawler.new_files << [local_file, nil, nil]
       end
+      @crawler.updated_states[state_abbr] ||= 1
+    end
 
+    def replay_end
       @timekey_idx += 1
       @done = true if @timekey_idx >= @timekeys.size
       @crawler.logger.log "Finished replaying"
     end
 
-    def record
-      @crawler.logger.log "Started recording"
-      dt1 = Time.now.strftime('%Y%m%d')
-      dt2 = Time.now.strftime('%H%M%S')
-      @crawler.updated_states.keys.each do |state_abbr|
-        record_state(state_abbr, @crawler.new_files.select{|file| file.first.index("#{state_abbr}_")}, dt1, dt2)
-      end
-      @crawler.logger.log "Finished recording"
+    def record_start
+      @dt1 = Time.now.strftime('%Y%m%d')
+      @dt2 = Time.now.strftime('%H%M%S')
+    end
+
+    def record_state(state_abbr)
+      @crawler.logger.log "Recording #{state_abbr}"
+      record_state_files(state_abbr, @crawler.new_files.select{|file| file.first.index("#{state_abbr}_")}, @dt1, @dt2)
     end
 
   private
@@ -94,7 +99,7 @@ module AP
       end
     end
 
-    def record_state(state_abbr, files, dt1, dt2)
+    def record_state_files(state_abbr, files, dt1, dt2)
       archive_dir = "#{@crawler.datadir}/#{dt1}/#{dt2}/#{state_abbr}/"
       system "mkdir -p #{archive_dir}"
       files.each do |file|
