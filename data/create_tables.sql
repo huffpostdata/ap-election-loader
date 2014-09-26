@@ -71,7 +71,8 @@ CREATE TABLE IF NOT EXISTS `stage_ap_results` (
   `incumbent` tinyint(1) DEFAULT NULL,
   `vote_count` int(11) DEFAULT NULL,
   `winner` varchar(1) COLLATE utf8_unicode_ci DEFAULT NULL,
-  `natl_order` int(11) DEFAULT NULL
+  `natl_order` int(11) DEFAULT NULL,
+  KEY `index_stage_ap_results_on_race_county_id` (`race_county_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `ap_candidates` (
