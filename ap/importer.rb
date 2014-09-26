@@ -48,7 +48,7 @@ module AP
       files.each do |f|
         q "truncate stage_#{f.last}"
         next unless File.exists? "#{state_path}/#{state_abbr}#{f.first}"
-        load_data = "'#{state_path}/#{state_abbr}#{f.first}' into table stage_#{f.last} fields terminated by ';'"
+        load_data = "'#{state_path}/#{state_abbr}#{f.first}' ignore into table stage_#{f.last} fields terminated by ';'"
         begin
           q "load data local infile #{load_data}"
         rescue Exception
