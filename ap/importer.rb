@@ -18,7 +18,7 @@ module AP
 
     def import_state(state_abbr)
       @crawler.logger.log "Importing #{state_abbr}"
-      stage_state(state_abbr)
+      return unless stage_state(state_abbr)
       @crawler.params[:initialize] ? initialize_state(state_abbr) : merge_state(state_abbr)
 
       # Wait to cache new files until they're fully merged so the crawler can be killed between downloading and importing
@@ -48,10 +48,13 @@ module AP
           q "load data infile #{load_data}"
         end
       end
+      # If there are no rows in stage_ap_races, abort since we don't have a date to concat with candidate_id
+      first_date = q("select election_date from stage_ap_races limit 1").first
+      return false unless first_date
 
       q "update stage_ap_races set ap_race_id = concat(date_format(election_date, '%y%m'), race_county_id)"
-      short_date = q("select election_date from stage_ap_races limit 1").first["election_date"].strftime("%y%m")
-      q "update stage_ap_results set candidate_id = concat(#{short_date}, candidate_id)"
+      q "update stage_ap_results set candidate_id = concat(#{first_date["election_date"].strftime("%y%m")}, candidate_id)"
+      true
     end
 
     # Create new records in production (non-staging) table if necessary
