@@ -17,12 +17,17 @@ module AP
       raise AbortException, "Can't run replays in production environment" if ['production', 'internal'].include?(@crawler.env)
 
       get_replay if @timekey_idx == 0
-      timekey = @timekeys[@timekey_idx]
-      @crawler.logger.log "Started replaying #{timekey}"
 
-      @archive_dir = "#{@crawler.datadir}/#{@crawler.params[:replaydate]}/#{timekey}"
-      @timekey_states = Dir.glob("#{@archive_dir}/*").map{|d| d.split('/').last}.uniq
-      @timekey_states = @timekey_states & @crawler.params[:states] if @crawler.params[:states]
+      while true
+        timekey = @timekeys[@timekey_idx]
+        @archive_dir = "#{@crawler.datadir}/#{@crawler.params[:replaydate]}/#{timekey}"
+        @timekey_states = Dir.glob("#{@archive_dir}/*").map{|d| d.split('/').last}.uniq
+        @timekey_states = @timekey_states & @crawler.params[:states] if @crawler.params[:states]
+        break if @timekey_states.size > 0 || @timekey_idx >= @timekeys.size - 1
+        @timekey_idx += 1
+      end
+
+      @crawler.logger.log "Started replaying #{timekey}"
     end
 
     def replay_state(state_abbr)
