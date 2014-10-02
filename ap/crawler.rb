@@ -37,28 +37,34 @@ module AP
         tm_start = Time.now.to_i
 
         begin
-          @new_files = []
           @updated_states = {}
+          @params[:replay] ? @replayer.replay_start : @downloader.connect
+          @replayer.record_start if @params[:record]
+          @params[:states].each_with_index do |state, i|
+            @new_files = []
 
-          # Everything happens here
-          @params[:replay] ? @replayer.replay : @downloader.download
-          if @new_files.size > 0
-            @importer.import
-            @replayer.record if @params[:record]
-          end
+            # Download state from FTP server or stored replay
+            @params[:replay] ? @replayer.replay_state(state) : @downloader.download_state(state)
 
-          # Run posthook if results changed or param is set
-          if @posthook && (@new_files.size > 0 || @params[:posthook])
-            @posthook.run
-            @params[:posthook] = false
+            # If any files changed, import the state
+            if @new_files.size > 0
+              @importer.import_state(state)
+              @replayer.record_state(state) if @params[:record]
+            end
+
+            # Run posthook if a) this is the last state and any state changed b) this state changed and we're running posthook for every state, c) posthook param is set
+            if (i == @params[:states].size - 1 && @updated_states.size > 0) || (@new_files.size > 0 && params[:posthookall]) || @params[:posthook]
+              @posthook.run
+              @params[:posthook] = false
+            end
           end
+          @params[:replay] ? @replayer.replay_end : @downloader.disconnect
 
           # Sleep for a bit after the first round of a replay so you can ctrl-Z and do whatever
           if @params[:initialize] && @params[:replay]
             @logger.log "Sleeping at initial state *************"
             sleep 5
           end
-
         rescue AbortException => e
           @logger.err e.to_s
           raise e

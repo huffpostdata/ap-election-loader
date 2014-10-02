@@ -10,16 +10,6 @@ module AP
       @crawler = crawler
     end
 
-    def download
-      @crawler.logger.log "Started downloading"
-      connect
-      @crawler.params[:states].each{|state| download_state(state)}
-      disconnect
-      @crawler.logger.log "Finished downloading"
-    end
-
-  private
-
     def connect
       @ftp = Net::FTP.new(@crawler.ap_config['host'])
       @ftp.login(@crawler.ap_config['user'], @crawler.ap_config['pass'])
@@ -31,6 +21,7 @@ module AP
     end
 
     def download_state(state)
+      @crawler.logger.log "Downloading #{state}"
       ftp_dir = "/#{state}/dbready"
       local_dir = "#{@crawler.datadir}/#{state}"
       FileUtils.remove_dir("#{local_dir}", true) if @crawler.params[:clean]
@@ -42,6 +33,8 @@ module AP
 
       download_files(files, ftp_dir, local_dir, state)
     end
+
+  private
 
     def download_files(files, ftp_dir, local_dir, state)
       files.each do |file|
@@ -73,6 +66,9 @@ module AP
             FileUtils.rm_f("#{local_dir}/#{file}")
             disconnect
             connect
+            @crawler.new_files = []
+            @crawler.updated_states.delete(state)
+            return
           end
         end
       end
