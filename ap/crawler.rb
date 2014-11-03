@@ -54,7 +54,7 @@ module AP
 
             # Run posthook if a) this is the last state and any state changed b) this state changed and we're running posthook for every state, c) posthook param is set
             if (i == @params[:states].size - 1 && @updated_states.size > 0) || (@new_files.size > 0 && params[:posthookall]) || @params[:posthook]
-              @posthook.run
+              @posthook.run if defined?(@posthook)
               @params[:posthook] = false
             end
           end
