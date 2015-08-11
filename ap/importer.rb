@@ -164,7 +164,7 @@ module AP
     end
 
     def connect
-      @db = Mysql2::Client.new(:host => @db_config["host"], :username => @db_config["username"], :password => @db_config["password"], :database => @db_config["database"])
+      @db = Mysql2::Client.new(host: @db_config["host"], username: @db_config["username"], password: @db_config["password"], database: @db_config["database"])
     end
 
     def q(sql)

@@ -81,9 +81,9 @@ module AP
     def download_latest_from_s3
       @s3_config = YAML.load_file("#{@crawler.dir}/config/s3.yml")
       begin
-        AWS::S3::Base.establish_connection!(:access_key_id => @s3_config['access_key_id'], :secret_access_key => @s3_config['secret_access_key'])
+        AWS::S3::Base.establish_connection!(access_key_id: @s3_config['access_key_id'], secret_access_key: @s3_config['secret_access_key'])
         bucket = AWS::S3::Bucket.find(@s3_config['bucket'])
-        s3_files = bucket.objects(:prefix => "#{@s3_config['directory']}/").map{|o| o.key.split('/')[1, 1].first}
+        s3_files = bucket.objects(prefix: "#{@s3_config['directory']}/").map{|o| o.key.split('/')[1, 1].first}
       rescue Exception => e
         raise AbortException, e.to_s
       end
@@ -95,7 +95,7 @@ module AP
       local_gzip = "#{@crawler.datadir}/#{s3_date}.tar.gz"
       unless File.exist?(local_gzip)
         puts "Downloading replay from #{s3_date}..."
-        s3_object = bucket.objects(:prefix => "#{@s3_config['directory']}/#{s3_date}.tar.gz").first
+        s3_object = bucket.objects(prefix: "#{@s3_config['directory']}/#{s3_date}.tar.gz").first
         if s3_object.nil?
           raise AbortException, "A replay from #{s3_date} wasn't found on s3"
         end
